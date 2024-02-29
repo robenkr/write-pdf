@@ -1,11 +1,13 @@
 import { Injectable } from '@angular/core';
-// @ts-ignore
-import pdfMake from 'pdfmake/build/pdfmake';
-// @ts-ignore
-import pdfFonts from "pdfmake/build/vfs-fonts";
+import * as pdfMake from 'pdfmake/build/pdfmake';
+import * as pdfFonts from 'pdfmake/build/vfs_fonts';
 
-pdfMake.vfs = pdfFonts.pdfMake.vfs;
+(<any>pdfMake).vfs = pdfFonts.pdfMake.vfs;
 
+/**
+ * Interfaces
+ * ==========
+ */
 export interface Store {
   name: string;
   storeAddress: [{
@@ -49,6 +51,9 @@ export interface ProductOrder {
     }]
   }];
 }
+/**
+ * ==========
+ */
 
 @Injectable({
   providedIn: 'root'
@@ -65,7 +70,7 @@ export class InvoiceService {
    * @param products The Products in order
    */
   generateTicketInvoice(order: Order, store: Store, user: User, products: Array<ProductOrder>): void {
-    const docDefinition = {
+    const docDefinition: any = {
       info: {
         title: `receipt-${order.orderShortCode}`,
         author: 'Rockstar',
@@ -164,7 +169,7 @@ export class InvoiceService {
                 text: user.name || '-',
                 bold: true
               },
-              { text: `${order?.address?.street || user.address[0]?.street || '-'}, ${order?.address?.city || user.address[0]?.city || '-'}, ${order?.address?.country || user.address[0]?.country || '-'}`},
+              { text: `${order?.address?.street || user.address[0].street || '-'}, ${order?.address?.city || user.address[0].city || '-'}, ${order?.address?.country || user.address[0].country || '-'}`},
               { text: user.emailAddress || '-'},
               { text: user.phoneNumber || '-'}
             ],
@@ -215,86 +220,86 @@ export class InvoiceService {
                         text: new Date(order.orderedAt.seconds * 1000).toLocaleString().toString(),
                         italics: true,
                         border: [true, true, true, true]
-                      },
-                      {
-                        text: 'Order Details',
-                        style: 'sectionHeader'
-                      },
-                      {
-                        table: {
-                          headerRows: 1,
-                          widths: ['*', 'auto', 'auto', 'auto', 'auto', 'auto'],
-                          body: [
-                            [{text: 'Products', bold: true, style: 'tableHeader'},
-                              {text: 'Passenger', bold: true, style: 'tableHeader'},
-                              {text: 'Seat', bold: true, style: 'tableHeader'},
-                              {text: 'Price', bold: true, style: 'tableHeader'},
-                              {text: 'Quantity', bold: true, style: 'tableHeader'},
-                              {text: 'Amount', bold: true, style: 'tableHeader'}
-                            ],
-                            ...products.map(
-                              (product) => (
-                                [
-                                  product.name,
-                                  product.passengerName,
-                                  product.metaDatas[0].metaDataValues[0].value,
-                                  product.price,
-                                  product.quantity,
-                                  (product.price * product.quantity).toFixed(2)
-                                ]
-                              )
-                            ),
-                            [
-                              {text: 'Total Amount', bold: true, style: 'tableHeader', colSpan: 5},
-                              {}, {}, {}, {},
-                              {
-                                text: products.reduce((sum, product) =>
-                                  sum + (product.quantity * product.price), 0).toFixed(2),
-                                bold: true,
-                                fillColor: '#229C81',
-                                color: '#fff',
-                              }],
-                            {
-                              text: 'Additional Details',
-                              style: 'sectionHeader'
-                            },
-                            {
-                              text: order.comment,
-                              margin: [0, 0 , 0, 15]
-                            },
-                            {
-                              columns: [
-                                [
-                                  {
-                                    qr: `ShortCode: ${order.uid}`,
-                                    fit: 100, foreground: '#229C81'
-                                  }],
-                                [{
-                                  text: 'Terms and Conditions',
-                                  style: 'sectionHeader'
-                                },
-                                  {
-                                    ul: [
-                                      'Order can be return in max 10 days.',
-                                      'Warrenty of the product will be subject to the manufacturer terms and conditions.',
-                                      'This is system generated invoice.',
-                                    ],
-                                  }],
-                              ]
-                            },
-                          ],
-                        },
-                        layout: {
-                          fillColor: (rowIndex: number) => {
-                            return (rowIndex % 2 === 1) ? '#f5faf8' : null;
-                          }
-                        }
-                      },
+                      }
                     ],
                   ]
                 }
               }
             ]
+          ]
+        },
+        {
+          text: 'Order Details',
+          style: 'sectionHeader'
+        },
+        {
+          table: {
+            headerRows: 1,
+            widths: ['*', 'auto', 'auto', 'auto', 'auto', 'auto'],
+            body: [
+              [{text: 'Products', bold: true, style: 'tableHeader'},
+                {text: 'Passenger', bold: true, style: 'tableHeader'},
+                {text: 'Seat', bold: true, style: 'tableHeader'},
+                {text: 'Price', bold: true, style: 'tableHeader'},
+                {text: 'Quantity', bold: true, style: 'tableHeader'},
+                {text: 'Amount', bold: true, style: 'tableHeader'}
+              ],
+              ...products.map(
+                (product: ProductOrder) => (
+                  [
+                    product.name,
+                    product.passengerName,
+                    product.metaDatas[0].metaDataValues[0].value,
+                    product.price,
+                    product.quantity,
+                    (product.price * product.quantity).toFixed(2)
+                  ]
+                )
+              ),
+              [
+                {text: 'Total Amount', bold: true, style: 'tableHeader', colSpan: 5},
+                {}, {}, {}, {},
+                {
+                  text: products.reduce((sum, product) =>
+                    sum + (product.quantity * product.price), 0).toFixed(2),
+                  bold: true,
+                  fillColor: '#229C81',
+                  color: '#fff',
+                }],
+            ],
+          },
+          layout: {
+            fillColor: (rowIndex: number) => {
+              return (rowIndex % 2 === 1) ? '#f5faf8' : null;
+            }
+          }
+        },
+        {
+          text: 'Additional Details',
+          style: 'sectionHeader'
+        },
+        {
+          text: order.comment,
+          margin: [0, 0 , 0, 15]
+        },
+        {
+          columns: [
+            [
+              {
+                qr: `ShortCode: ${order.uid}`,
+                fit: 100, foreground: '#229C81'
+              }],
+            [{
+              text: 'Terms and Conditions',
+              style: 'sectionHeader'
+            },
+              {
+                ul: [
+                  'Order can be return in max 10 days.',
+                  'Warrenty of the product will be subject to the manufacturer terms and conditions.',
+                  'This is system generated invoice.',
+                ],
+              }],
           ]
         },
       ]
